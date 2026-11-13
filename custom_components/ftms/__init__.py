@@ -3,6 +3,7 @@
 import logging
 
 import pyftms
+import pyftms.client.client as pyftms_client
 from bleak.exc import BleakError
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth.match import BluetoothCallbackMatcher
@@ -20,7 +21,7 @@ from homeassistant.helpers import device_registry as dr
 from .const import DOMAIN
 from .coordinator import DataCoordinator
 from .models import FtmsData
-from .urevo import attach_vendor_stream, reading_to_update_event
+from .urevo import attach_vendor_stream, reading_to_update_event, widen_service_filter
 
 PLATFORMS: list[Platform] = [
     Platform.BUTTON,
@@ -57,6 +58,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: FtmsConfigEntry) -> bool
 
         if ftms_.need_connect:
             hass.config_entries.async_schedule_reload(entry.entry_id)
+
+    widen_service_filter(pyftms_client)
 
     try:
         ftms = pyftms.get_client(

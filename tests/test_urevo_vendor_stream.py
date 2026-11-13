@@ -108,3 +108,36 @@ def test_streamed_reading_becomes_a_sensor_update_event():
         "energy_total": 33.4,
         "step_count": 946,
     }
+
+
+def test_connection_requests_vendor_service_in_addition_to_requested_ones():
+    from urevo import widen_service_filter
+
+    seen = []
+
+    async def establish_connection(*args, services=None, **kwargs):
+        seen.append(list(services))
+
+    module = SimpleNamespace(establish_connection=establish_connection)
+
+    widen_service_filter(module)
+    asyncio.run(module.establish_connection(services=["ftms", "dis"]))
+
+    assert seen == [["ftms", "dis", VENDOR_SERVICE]]
+
+
+def test_widening_the_service_filter_twice_adds_vendor_service_once():
+    from urevo import widen_service_filter
+
+    seen = []
+
+    async def establish_connection(*args, services=None, **kwargs):
+        seen.append(list(services))
+
+    module = SimpleNamespace(establish_connection=establish_connection)
+
+    widen_service_filter(module)
+    widen_service_filter(module)
+    asyncio.run(module.establish_connection(services=["ftms"]))
+
+    assert seen == [["ftms", VENDOR_SERVICE]]
