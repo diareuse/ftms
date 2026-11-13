@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Callable
 
 from .reading import TreadmillReading, decode_reading
@@ -7,18 +8,23 @@ NOTIFY_CHAR = "0000fff1-0000-1000-8000-00805f9b34fb"
 WRITE_CHAR = "0000fff2-0000-1000-8000-00805f9b34fb"
 START_STREAMING = bytes.fromhex("02510b03")
 
+_LOGGER = logging.getLogger(__name__)
+
 ReadingSink = Callable[[TreadmillReading], None]
 
 
 async def attach_vendor_stream(client, sink: ReadingSink) -> bool:
     if not any(s.uuid == VENDOR_SERVICE for s in client.services):
+        _LOGGER.debug("Vendor service not found: %s", [s.uuid for s in client.services])
         return False
 
     def on_notify(_, data: bytearray) -> None:
+        _LOGGER.debug("Vendor frame: %s", bytes(data).hex())
         if (reading := decode_reading(bytes(data))) is not None:
             sink(reading)
 
     await client.start_notify(NOTIFY_CHAR, on_notify)
     await client.write_gatt_char(WRITE_CHAR, START_STREAMING, response=False)
+    _LOGGER.debug("Vendor stream started")
 
     return True
