@@ -86,7 +86,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: FtmsConfigEntry) -> bool
             ),
         )
 
-    except BleakError:
+    except (BleakError, TimeoutError):
         _LOGGER.exception("Vendor data stream could not be started")
 
     _LOGGER.debug(f"Device Information: {ftms.device_info}")
