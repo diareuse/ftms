@@ -20,6 +20,7 @@ from homeassistant.helpers import device_registry as dr
 from .const import DOMAIN
 from .coordinator import DataCoordinator
 from .models import FtmsData
+from .urevo import attach_vendor_stream, reading_to_update_event
 
 PLATFORMS: list[Platform] = [
     Platform.BUTTON,
@@ -76,6 +77,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: FtmsConfigEntry) -> bool
         raise ConfigEntryNotReady(translation_key="connection_failed") from exc
 
     assert ftms.machine_type.name
+
+    try:
+        await attach_vendor_stream(
+            ftms._cli,
+            lambda reading: coordinator.async_set_updated_data(
+                reading_to_update_event(reading)
+            ),
+        )
+
+    except BleakError:
+        _LOGGER.exception("Vendor data stream could not be started")
 
     _LOGGER.debug(f"Device Information: {ftms.device_info}")
     _LOGGER.debug(f"Machine type: {ftms.machine_type.name}")
