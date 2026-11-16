@@ -22,7 +22,7 @@ from .const import DOMAIN
 from .coordinator import DataCoordinator
 from .models import FtmsData
 from .urevo import (
-    attach_vendor_stream,
+    attach_stream_on_connect,
     reading_to_update_event,
     retry_unanswered_commands,
     widen_service_filter,
@@ -80,6 +80,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: FtmsConfigEntry) -> bool
 
     coordinator = DataCoordinator(hass, ftms)
 
+    attach_stream_on_connect(
+        ftms,
+        lambda reading: coordinator.async_set_updated_data(
+            reading_to_update_event(reading)
+        ),
+    )
+
     try:
         await ftms.connect()
 
@@ -87,17 +94,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: FtmsConfigEntry) -> bool
         raise ConfigEntryNotReady(translation_key="connection_failed") from exc
 
     assert ftms.machine_type.name
-
-    try:
-        await attach_vendor_stream(
-            ftms._cli,
-            lambda reading: coordinator.async_set_updated_data(
-                reading_to_update_event(reading)
-            ),
-        )
-
-    except (BleakError, TimeoutError):
-        _LOGGER.exception("Vendor data stream could not be started")
 
     _LOGGER.debug(f"Device Information: {ftms.device_info}")
     _LOGGER.debug(f"Machine type: {ftms.machine_type.name}")
