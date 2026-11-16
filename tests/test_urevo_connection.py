@@ -41,6 +41,9 @@ class FakeFitnessMachine:
         self._cli = self.clients.pop(0)
         self.connected = True
 
+    async def send_command(self):
+        await self._connect()
+
     def drop_connection(self):
         self.connected = False
         del self._cli
@@ -95,3 +98,13 @@ def test_connection_succeeds_even_when_the_stream_cannot_start():
     connect(machine)
 
     assert machine.is_connected is True
+
+
+def test_stream_starts_when_a_command_reconnects_the_machine_lazily():
+    client = FakeBleakClient()
+    machine = FakeFitnessMachine(client)
+    attach_stream_on_connect(machine, lambda reading: None)
+
+    asyncio.run(machine.send_command())
+
+    assert len(client.writes) == 1

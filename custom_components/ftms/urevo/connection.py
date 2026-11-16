@@ -16,13 +16,15 @@ def attach_stream_on_connect(machine, sink: ReadingSink) -> None:
     async def connect() -> None:
         await original()
 
-        if not machine.is_connected or machine._cli in streamed:
+        cli = getattr(machine, "_cli", None)
+
+        if not machine.is_connected or cli is None or cli in streamed:
             return
 
-        streamed[:] = [machine._cli]
+        streamed[:] = [cli]
 
         try:
-            await attach_vendor_stream(machine._cli, sink)
+            await attach_vendor_stream(cli, sink)
         except (BleakError, TimeoutError):
             _LOGGER.exception("Vendor data stream could not be started")
 
