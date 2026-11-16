@@ -25,6 +25,7 @@ from .urevo import (
     attach_stream_on_connect,
     reading_to_update_event,
     retry_unanswered_commands,
+    route_control_to_vendor,
     widen_service_filter,
 )
 
@@ -77,6 +78,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: FtmsConfigEntry) -> bool
         raise ConfigEntryNotReady(translation_key="ftms_error")
 
     retry_unanswered_commands(ftms)
+    route_control_to_vendor(ftms)
 
     coordinator = DataCoordinator(hass, ftms)
 

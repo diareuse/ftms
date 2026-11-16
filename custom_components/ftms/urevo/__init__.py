@@ -1,4 +1,5 @@
 from .connection import attach_stream_on_connect
+from .control import route_control_to_vendor
 from .events import reading_to_update_event
 from .reading import TreadmillReading, decode_reading
 from .retry import retry_unanswered_commands
@@ -11,6 +12,7 @@ __all__ = [
     "attach_vendor_stream",
     "decode_reading",
     "reading_to_update_event",
+    "route_control_to_vendor",
     "retry_unanswered_commands",
     "widen_service_filter",
 ]
