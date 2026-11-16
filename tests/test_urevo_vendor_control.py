@@ -55,7 +55,7 @@ def test_speed_setting_is_sent_as_vendor_speed_frame():
 def test_speed_is_rounded_to_tenths_of_a_kilometre_per_hour():
     machine, client = routed()
 
-    write(machine, target_speed=3.0)
+    write(machine, target_speed=0.1 * 30)
 
     assert client.writes == [(WRITE_CHAR, "0253021e002903", False)]
 
