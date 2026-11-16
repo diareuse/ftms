@@ -21,7 +21,12 @@ from homeassistant.helpers import device_registry as dr
 from .const import DOMAIN
 from .coordinator import DataCoordinator
 from .models import FtmsData
-from .urevo import attach_vendor_stream, reading_to_update_event, widen_service_filter
+from .urevo import (
+    attach_vendor_stream,
+    reading_to_update_event,
+    retry_unanswered_commands,
+    widen_service_filter,
+)
 
 PLATFORMS: list[Platform] = [
     Platform.BUTTON,
@@ -70,6 +75,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: FtmsConfigEntry) -> bool
 
     except pyftms.NotFitnessMachineError:
         raise ConfigEntryNotReady(translation_key="ftms_error")
+
+    retry_unanswered_commands(ftms)
 
     coordinator = DataCoordinator(hass, ftms)
 
